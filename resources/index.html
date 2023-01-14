@@ -1,0 +1,82 @@
+{{template "layout" .}}
+
+{{define "title"}}Главная{{end}}
+
+{{define "content"}}
+<div class="container">
+	<div class="border rounded border-light p-3 pb-0 my-3">
+		<div class="mb-3">
+			<input type="number" class="form-control" id="VacancyID" placeholder="ID">
+		</div>
+		<div class="mb-3">
+			<input type="text" class="form-control" id="VacancyPosition" placeholder="Должность">
+		</div>
+		<div class="mb-3">
+			<input type="number" class="form-control" id="VacancyExperience" placeholder="Опыт">
+		</div>
+		<div class="mb-3">
+			<input type="text" class="form-control" id="VacancyDescription" placeholder="Описание">
+		</div>
+		<div class="container">
+			<div class="row">
+				<button class="btn btn-secondary col-md-2 mb-3 me-3"
+					onclick="sendJson('/api/vacancies/show/' + Number(VacancyID.value), 'GET')">Получить</button>
+				<button class="btn btn-success col-md-2 mb-3 me-3"
+					onclick="sendJson('/api/vacancies/create', 'POST', (new VacancyModel(VacancyID.value, VacancyPosition.value, VacancyExperience.value, VacancyDescription.value)).asJSON())">Создать</button>
+				<button class="btn btn-primary col-md-2 mb-3 me-3"
+					onclick="sendJson('/api/vacancies/update', 'PUT', (new VacancyModel(VacancyID.value, VacancyPosition.value, VacancyExperience.value, VacancyDescription.value)).asJSON())">Обновить</button>
+				<button class="btn btn-danger col-md-2 mb-3 me-3"
+					onclick="sendJson('/api/vacancies/delete', 'DELETE', (new VacancyModel(VacancyID.value, VacancyPosition.value, VacancyExperience.value, VacancyDescription.value)).asJSON())">Удалить</button>
+			</div>
+		</div>
+	</div>
+	<div class="border rounded border-light p-3 mb-3">
+		Ответ сервера: <span id="ServerResponse"></span>
+	</div>
+	<div class="border rounded border-light p-3 mb-3">
+		Список вакансий: <span id="VacancyList"></span>
+	</div>
+</div>
+<script>
+	class VacancyModel {
+		constructor(ID, Position, Experience, Description) {
+			this.ID = Number(ID);
+			this.Position = Position;
+			this.Experience = Number(Experience);
+			this.Description = Description;
+		}
+
+		asJSON() {
+			return JSON.stringify(this);
+		}
+	};
+
+	function sendRequest(url, method, contentType = null, dataType = null, data = null) {
+		return $.ajax({ type: method, url: url, contentType: contentType, dataType: dataType, data: data });
+	}
+
+	setInterval(function () {
+		sendRequest('/api/vacancies/index', 'GET', 'application/json', 'text')
+			.done(function (data) {
+				if (VacancyList.innerText != data) {
+					VacancyList.innerText = data;
+				}
+			})
+			.fail(function (xhr, options, error) {
+				VacancyList.innerText = xhr.status + " " + xhr.statusText;
+			});
+	}, 100);
+
+	function sendJson(url, method, data) {
+		sendRequest(url, method, 'application/json', 'text', data)
+			.done(function (data) {
+				if (ServerResponse.innerText != data) {
+					ServerResponse.innerText = data;
+				}
+			})
+			.fail(function (xhr, options, error) {
+				ServerResponse.innerText = xhr.status + " " + xhr.statusText;
+			});
+	}
+</script>
+{{end}}
